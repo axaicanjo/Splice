@@ -1,0 +1,33 @@
+# Removed from the PUZZLE list only (kept as accepted guesses).
+# Words with a legitimate sense but slur/offensive use, plus vulgar terms not in LDNOOBW.
+# The full LDNOOBW list (sources/ldnoobw_en.txt) is also applied to the puzzle list.
+coon
+chink
+dyke
+retard
+retarded
+mongoloid
+spastic
+poof
+twink
+kraut
+gringo
+limey
+coolie
+kafir
+fags
+mong
+crap
+piss
+pissed
+damn
+hell
+arse
+turd
+tits
+boob
+booby
+bonk
+shag
+horny
+hebe
