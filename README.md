@@ -1,6 +1,6 @@
 # Splice
 
-A daily word-chain game. Get from the start word to the target: each new word must begin with the last 2 or more letters of the previous word (3+ in hard mode). Fewest moves wins; ties go to the longest total overlap.
+A daily word-chain game. Get from the start word (top) to the target (bottom): each new word must begin with the last 2 or more letters of the previous word (3+ in hard mode). You can build down from the start, up from the target, or both; the puzzle is solved when the two halves splice together. Fewest moves wins; ties go to the longest total overlap.
 
 ```
 CARPET → PETAL (3) → TALON (3) → ONSET (2)   = 3 moves
@@ -10,6 +10,7 @@ CARPET → PETAL (3) → TALON (3) → ONSET (2)   = 3 moves
 
 - Daily puzzle (same for everyone, numbered from #1 on 25 Oct 2026, by local date)
 - Practice mode (unlimited) and an archive of past dailies
+- Two-way play: switch between ↓ From start and ↑ From target at any time
 - Hard mode (min overlap 3), set in Settings
 - Hints: moves left / suggested next word (counted in the result)
 - Par solution shown at the end; stats and streaks stored on the device

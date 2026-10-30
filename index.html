@@ -28,24 +28,23 @@
   </header>
 
   <div class="subbar">
-    <span id="puzzle-label">Loading…</span>
-    <span class="subbar-actions">
+    <span class="subbar-left">
+      <span id="puzzle-label">Loading…</span>
       <button type="button" class="link-btn" id="btn-new-practice" hidden>New puzzle</button>
     </span>
+    <div class="pips" id="pips" role="img" aria-label="Moves"></div>
   </div>
 
-  <section class="target-panel" aria-label="Target">
-    <div>
-      <div class="label">TARGET</div>
-      <div class="target-word" id="target-word">·····</div>
-    </div>
-    <div class="pips" id="pips" aria-hidden="true"></div>
-  </section>
-
   <main class="chain-wrap" id="chain-wrap">
-    <ol class="chain" id="chain" aria-label="Your chain"></ol>
-    <p class="helper" id="helper"></p>
+    <ol class="chain" id="chain-top" aria-label="From the start word"></ol>
+    <div class="gap" id="gap" aria-hidden="true"></div>
+    <ol class="chain" id="chain-bottom" aria-label="Toward the target word"></ol>
   </main>
+
+  <div class="dir-row" id="dir-row" role="group" aria-label="Build direction">
+    <button type="button" class="seg" id="dir-f" aria-pressed="true">↓ From start</button>
+    <button type="button" class="seg" id="dir-b" aria-pressed="false">↑ From target</button>
+  </div>
 
   <div class="actions" id="actions">
     <button type="button" class="pill-btn" id="btn-undo">Undo</button>

@@ -24,6 +24,13 @@ export function splicePoints(word, minOverlap) {
   return out;
 }
 
+/** Prefixes of a word a previous word could end with, shortest first. */
+export function joinPoints(word, minOverlap) {
+  const out = [];
+  for (let k = minOverlap; k < word.length; k++) out.push(word.slice(0, k));
+  return out;
+}
+
 export class Graph {
   /** @param {string[]} words  the puzzle (common) list */
   constructor(words) {
@@ -48,6 +55,18 @@ export class Graph {
       for (const w of list) if (!seen.has(w)) { seen.add(w); out.push([w, k]); }
     }
     return out; // longest overlap first, so each word carries its best k
+  }
+
+  /** Words that can come right BEFORE `word` (any string), with their overlap. */
+  prev(word, minOverlap) {
+    const out = [];
+    const seen = new Set();
+    for (let k = word.length - 1; k >= minOverlap; k--) {
+      const list = this.bySuffix.get(word.slice(0, k));
+      if (!list) continue;
+      for (const p of list) if (!seen.has(p)) { seen.add(p); out.push([p, k]); }
+    }
+    return out;
   }
 
   /** BFS distances (in moves) from `start`. Each splice key is expanded once. */
@@ -149,6 +168,24 @@ export class Graph {
       if (d === undefined) continue;
       if (d + 1 < bestD) { bestD = d + 1; options = [[w, k]]; }
       else if (d + 1 === bestD) options.push([w, k]);
+    }
+    if (bestD === Infinity) return null;
+    options.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    return { movesLeft: bestD, options };
+  }
+
+  /**
+   * Backward hint: best words to place right BEFORE `current` (the top of the
+   * target-side chain). `fromS` is a cached forward() map from the start side.
+   */
+  hintBack(current, minOverlap, fromS, used) {
+    let bestD = Infinity, options = [];
+    for (const [p, k] of this.prev(current, minOverlap)) {
+      if (used.has(p)) continue;
+      const d = fromS.get(p);
+      if (d === undefined) continue;
+      if (d + 1 < bestD) { bestD = d + 1; options = [[p, k]]; }
+      else if (d + 1 === bestD) options.push([p, k]);
     }
     if (bestD === Infinity) return null;
     options.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));

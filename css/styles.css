@@ -24,24 +24,28 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .logo { margin: 0; font-weight: 800; font-size: 26px; letter-spacing: 0.02em; }
 .logo .dot { color: var(--pip-on); }
 .par-pill { min-width: 44px; height: 32px; padding: 0 12px; border-radius: 16px; background: var(--key-alt); display: flex; align-items: center; font-weight: 700; font-size: 14px; white-space: nowrap; }
-.subbar { display: flex; justify-content: space-between; align-items: center; min-height: 32px; margin-top: 6px; font-size: 13px; color: var(--muted); font-weight: 500; }
+.subbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 36px; margin-top: 8px; font-size: 13px; color: var(--muted); font-weight: 500; }
+.subbar-left { display: flex; align-items: baseline; flex-wrap: wrap; min-width: 0; }
 .link-btn { background: none; border: none; color: var(--text); font-weight: 700; font-size: 13px; padding: 8px 0 8px 12px; text-decoration: underline; text-underline-offset: 3px; }
 
 /* target */
-.target-panel { margin-top: 6px; background: var(--panel); border-radius: 16px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0.04em; }
-.target-word { font-weight: 800; font-size: 22px; letter-spacing: 0.08em; text-transform: uppercase; }
-.pips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 60%; }
-.pip { width: 26px; height: 8px; border-radius: 4px; background: var(--pip-off); }
+.pips { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; max-width: 50%; flex: none; }
+.pip { width: 22px; height: 8px; border-radius: 4px; background: var(--pip-off); }
 .pip.on { background: var(--pip-on); }
 .pip.over { background: var(--muted); }
 
 /* chain */
-.chain-wrap { flex: 1 1 auto; overflow-y: auto; margin-top: 16px; min-height: 0; scrollbar-width: none; }
+.chain-wrap { flex: 1 1 auto; overflow-y: auto; margin-top: 10px; min-height: 0; scrollbar-width: none; display: flex; flex-direction: column; }
+.chain-wrap > .chain { flex: none; padding-bottom: 0; }
+.gap { flex: 1 1 auto; min-height: 36px; margin: 6px 0 6px 52px; border-left: 2px dashed var(--empty); }
+.chain-wrap.joined #chain-bottom { margin-top: 10px; }
+#chain-bottom { padding-bottom: 6px; }
 .chain { list-style: none; margin: 0; padding: 0 0 6px; display: flex; flex-direction: column; gap: 10px; }
 .row { display: flex; align-items: center; gap: 0; }
 .gutter { flex: none; width: 34px; font-size: 12px; font-weight: 700; color: var(--muted); }
-.start-icon { color: var(--muted); display: block; }
+.gutter-icon { color: var(--muted); display: block; }
+.target-icon { color: var(--pip-on); }
 .badge { display: inline-flex; align-items: center; height: 22px; padding: 0 7px; border-radius: 11px; background: var(--shared); color: var(--shared-text); }
 .tiles { display: flex; gap: 5px; }
 .tile {
@@ -61,11 +65,17 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 .row.pop .tile { animation: pop 0.25s ease-out; }
 @keyframes pop { 50% { transform: scale(1.08); } }
-.helper { margin: 12px 0 0 34px; font-size: 14px; color: var(--muted); font-weight: 500; line-height: 1.4; }
+.helper { margin: 2px 0 0 34px; font-size: 14px; color: var(--muted); font-weight: 500; line-height: 1.4; }
+.helper.up { margin: 0 0 2px 34px; }
 .helper strong { color: var(--text); font-weight: 700; letter-spacing: 0.04em; }
 
 /* actions */
 .actions { display: flex; gap: 8px; justify-content: center; margin: 8px 0 10px; }
+.dir-row { display: flex; justify-content: center; margin-top: 8px; }
+.seg { min-height: 36px; padding: 0 14px; border: 2px solid var(--key-alt); background: transparent; color: var(--muted); font-weight: 700; font-size: 14px; }
+.seg:first-child { border-radius: 18px 0 0 18px; }
+.seg:last-child { border-radius: 0 18px 18px 0; border-left: none; }
+.seg[aria-pressed="true"] { background: var(--key-alt); color: var(--text); }
 .pill-btn { min-height: 36px; padding: 0 16px; border-radius: 18px; border: none; background: var(--key-alt); color: var(--text); font-weight: 700; font-size: 14px; }
 .pill-btn:disabled { opacity: 0.45; cursor: default; }
 
