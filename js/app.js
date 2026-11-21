@@ -198,12 +198,20 @@ function render() {
   $('btn-new-practice').hidden = g.kind !== 'practice';
 
   // pips (next to the puzzle label)
+  // Each placed word is one move, and the final splice that joins the two halves is one more.
+  // While playing, the open ends can't splice directly (that would have solved it), so at
+  // least one more word plus the final splice are still needed: placed + 2 moves minimum.
+  // Pips beyond par that you can no longer avoid are outlined.
   const moves = movesOf(g);
+  const minTotal = g.status === 'playing' ? moves + 2 : moves;
   const pips = $('pips'); pips.replaceChildren();
-  for (let i = 0; i < Math.max(g.par, moves); i++) {
-    pips.append(el('div', { class: 'pip' + (i < moves ? (i < g.par ? ' on' : ' over') : '') }));
+  for (let i = 0; i < Math.max(g.par, minTotal); i++) {
+    const filled = i < moves, past = i >= g.par;
+    pips.append(el('div', { class: 'pip' + (filled ? (past ? ' over' : ' on') : (past ? ' pending-over' : '')) }));
   }
-  pips.setAttribute('aria-label', `${plural(moves, 'move')} so far, par ${g.par}`);
+  pips.setAttribute('aria-label', g.status === 'playing'
+    ? `${plural(moves, 'word')} placed; at least ${plural(minTotal, 'move')} in total, par ${g.par}`
+    : `${plural(moves, 'move')}, par ${g.par}`);
 
   const typed = S.typed.toLowerCase();
   const liveF = !done && fwd ? liveOverlap(topLast(g), typed, g.minK) : 0;
