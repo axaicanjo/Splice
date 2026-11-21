@@ -1,9 +1,9 @@
 # Splice
 
-A daily word-chain game. Get from the start word (top) to the target (bottom): each new word must begin with the last 2 or more letters of the previous word (3+ in hard mode). You can build down from the start, up from the target, or both; the puzzle is solved when the two halves splice together. Fewest moves wins; ties go to the longest total overlap.
+A daily word-chain game. Get from the start word (top) to the target (bottom): each new word must begin with the last 2 or more letters of the previous word (3+ in hard mode). You can build down from the start, up from the target, or both; the puzzle is solved when the two halves splice together. Your score is the number of words you find between the start and the target; fewest wins, and ties go to the longest total overlap. An overlap can't be a whole word (BREW → BREWERY doesn't count).
 
 ```
-CARPET → PETAL (3) → TALON (3) → ONSET (2)   = 3 moves
+CARPET → PETAL (3) → TALON (3) → ONSET (2)   = 2 words (PETAL, TALON)
 ```
 
 ## Features
@@ -14,7 +14,7 @@ CARPET → PETAL (3) → TALON (3) → ONSET (2)   = 3 moves
 - Hard mode (min overlap 3), set in Settings
 - Hints: moves left / suggested next word (counted in the result)
 - Par solution shown at the end; stats and streaks stored on the device
-- Spoiler-free share text, e.g. `Splice #12 · 3·3·2 — par 3`
+- Spoiler-free share text, e.g. `Splice #12 · 3·3·2 — par 2`
 - 10 color themes in Settings
 
 ## Running locally
@@ -45,7 +45,7 @@ python3 -m http.server 8000
 node tools/generate_puzzles.mjs path/to/puzzle_freq.tsv path/to/inflections.tsv [nDaily] [nPractice]
 ```
 
-Both TSVs are produced by `tools/wordlists/build_lists.py`. Puzzles use common base words of 5–7 letters for the start and target. Each has a normal par of 3–5 moves through common words, at least 3 distinct shortest solutions, and has a hard-mode par of at most 9.
+Both TSVs are produced by `tools/wordlists/build_lists.py`. Puzzles use common base words of 5–7 letters for the start and target. Each has a normal par of 2–4 in-between words through common words, at least 3 distinct shortest solutions, and a hard-mode par of at most 8 words. (`puzzles.json` stores par in moves, i.e. words + 1; the app displays words.)
 
 ## Word list credits
 

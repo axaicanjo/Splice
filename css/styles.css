@@ -34,6 +34,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .pip { width: 22px; height: 8px; border-radius: 4px; background: var(--pip-off); }
 .pip.on { background: var(--pip-on); }
 .pip.over { background: var(--muted); }
+.pip.pending-over { background: transparent; box-shadow: inset 0 0 0 2px var(--muted); }
 
 /* chain */
 .chain-wrap { flex: 1 1 auto; overflow-y: auto; margin-top: 10px; min-height: 0; scrollbar-width: none; display: flex; flex-direction: column; }

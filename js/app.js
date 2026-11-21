@@ -62,6 +62,10 @@ const bottomFirst = g => g.tail[0];
 const addedCount = g => g.chain.length - 1 + g.tail.length - 1;
 const movesOf = g => (g.status === 'solved' ? g.chain.length + g.tail.length - 1 : addedCount(g));
 const usedWords = g => new Set([...g.chain, ...g.tail]);
+// Players see par and scores in WORDS FOUND (the in-between words, not counting start or
+// target). Internally par is stored in moves (= words + 1), as in puzzles.json.
+const wordsOf = g => (g.status === 'solved' ? movesOf(g) - 1 : addedCount(g));
+const parWords = g => g.par - 1;
 function fullChain(g) {
   return { words: g.chain.concat(g.tail), ks: g.overlaps.slice(1).concat([g.joinK], g.tailK) };
 }
@@ -191,27 +195,26 @@ function render() {
   const done = g.status !== 'playing';
   const solved = g.status === 'solved';
   const fwd = g.dir === 'f';
-  $('par-pill').textContent = (g.minK === 3 ? 'HARD · ' : '') + 'PAR ' + g.par;
+  $('par-pill').textContent = (g.minK === 3 ? 'HARD · ' : '') + 'PAR ' + parWords(g);
   const tn = todayNumber();
   $('puzzle-label').textContent = g.kind === 'practice' ? `Practice #${g.num + 1}`
     : (g.num === tn ? `Daily #${g.num} · ${fmtDate(g.num)}` : `Archive #${g.num} · ${fmtDate(g.num)}`);
   $('btn-new-practice').hidden = g.kind !== 'practice';
 
   // pips (next to the puzzle label)
-  // Each placed word is one move, and the final splice that joins the two halves is one more.
-  // While playing, the open ends can't splice directly (that would have solved it), so at
-  // least one more word plus the final splice are still needed: placed + 2 moves minimum.
+  // One pip per in-between word. While playing, the open ends can't splice directly (that
+  // would have solved it), so at least one more word is still needed: placed + 1 minimum.
   // Pips beyond par that you can no longer avoid are outlined.
-  const moves = movesOf(g);
-  const minTotal = g.status === 'playing' ? moves + 2 : moves;
+  const found = wordsOf(g), par = parWords(g);
+  const minTotal = g.status === 'playing' ? found + 1 : found;
   const pips = $('pips'); pips.replaceChildren();
-  for (let i = 0; i < Math.max(g.par, minTotal); i++) {
-    const filled = i < moves, past = i >= g.par;
+  for (let i = 0; i < Math.max(par, minTotal); i++) {
+    const filled = i < found, past = i >= par;
     pips.append(el('div', { class: 'pip' + (filled ? (past ? ' over' : ' on') : (past ? ' pending-over' : '')) }));
   }
   pips.setAttribute('aria-label', g.status === 'playing'
-    ? `${plural(moves, 'word')} placed; at least ${plural(minTotal, 'move')} in total, par ${g.par}`
-    : `${plural(moves, 'move')}, par ${g.par}`);
+    ? `${plural(found, 'word')} found; at least ${plural(minTotal, 'word')} needed, par ${par}`
+    : `${plural(found, 'word')}, par ${par}`);
 
   const typed = S.typed.toLowerCase();
   const liveF = !done && fwd ? liveOverlap(topLast(g), typed, g.minK) : 0;
@@ -269,9 +272,9 @@ function render() {
 
 // ---------- input ----------
 let toastTimer;
-function toast(msg) {
+function toast(msg, ms = 1800) {
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms);
 }
 function shake() {
   const row = document.querySelector('.input-row');
@@ -304,10 +307,15 @@ function submit() {
   else if (!S.accepted.has(w)) err = 'Not in word list';
   else if (usedWords(g).has(w)) err = 'Already in your chain';
   else if (!(k = fwd ? overlap(anchor, w, g.minK) : overlap(w, anchor, g.minK))) {
-    const pts = (fwd ? splicePoints(anchor, g.minK) : joinPoints(anchor, g.minK)).map(up);
-    err = `Must ${fwd ? 'start' : 'end'} with ${pts.slice(0, 3).join(', ')}${pts.length > 3 ? '…' : ''}`;
+    const [prev, next] = fwd ? [anchor, w] : [w, anchor];
+    if (next.startsWith(prev)) err = `${up(next)} contains all of ${up(prev)} — an overlap can’t be a whole word`;
+    else if (prev.endsWith(next)) err = `${up(prev)} ends with all of ${up(next)} — an overlap can’t be a whole word`;
+    else {
+      const pts = (fwd ? splicePoints(anchor, g.minK) : joinPoints(anchor, g.minK)).map(up);
+      err = `Must ${fwd ? 'start' : 'end'} with ${pts.slice(0, 3).join(', ')}${pts.length > 3 ? '…' : ''}`;
+    }
   }
-  if (err) { toast(err); shake(); return; }
+  if (err) { toast(err, err.length > 40 ? 3200 : 1800); shake(); return; }
   if (fwd) { g.chain.push(w); g.overlaps.push(k); }
   else { g.tail.unshift(w); g.tailK.unshift(k); }
   g.history.push(g.dir);
@@ -414,14 +422,15 @@ function helpSheet() {
   openSheet('How to play',
     el('p', { text: 'Get from the start word (top) to the target (bottom). Each new word must begin with the last 2 or more letters of the word before it.' }),
     ex,
-    el('p', {}, 'CARPET → PETAL → TALON → ONSET is ', el('strong', { text: '3 moves' }), '.'),
+    el('p', {}, 'CARPET → PETAL → TALON → ONSET takes ', el('strong', { text: '2 words' }), ' (PETAL and TALON). Your score is the number of words you find between the start and the target.'),
     el('p', {}, el('strong', { text: 'Work from either end. ' }),
       'Tap ', el('strong', { text: '↑ From target' }), ' to build upward: a word placed above the target must end with its first 2+ letters (TALON ends with ON, so it fits above ONSET). The puzzle is solved as soon as the two halves splice together.'),
     el('ul', {},
       el('li', { text: 'Words need at least 4 letters, and can’t repeat.' }),
-      el('li', { text: 'An overlap can’t be a whole word.' }),
-      el('li', { text: 'Fewer moves wins. Ties go to the longer total overlap — style points.' }),
-      el('li', { text: 'Par is the fewest moves using common words. Know rarer words? You can beat it.' }),
+      el('li', {}, el('strong', { text: 'An overlap can’t be a whole word. ' }),
+        'The overlap must leave at least one letter of the earlier word before it and at least one new letter after it. BREW → BREWERY doesn’t count: the overlap would be all of BREW, so BREWERY just extends it rather than splicing onto it. Likewise WATERFALL → FALL, where all of FALL would be overlap. BREW → EWER works (overlap EW).'),
+      el('li', { text: 'Fewer words wins. Ties go to the longer total overlap — style points.' }),
+      el('li', { text: 'Par is the fewest words needed using common words. Know rarer words? You can beat it.' }),
       el('li', { text: 'Hard mode needs overlaps of 3+ letters.' })),
     el('p', { class: 'kbd-hint', text: 'A new daily puzzle every day. Practice and the archive are unlimited.' }),
     el('button', { type: 'button', class: 'big-btn', text: 'Play', onclick: closeSheet }));
@@ -471,7 +480,7 @@ function archiveSheet() {
   for (let n = tn; n >= 1; n--) {
     const g = S.games['d' + n];
     const cls = g ? (g.status === 'solved' ? ' solved' : g.status === 'gaveup' ? ' gaveup' : '') : '';
-    const state = g ? (g.status === 'solved' ? `solved in ${movesOf(g)}` : g.status === 'gaveup' ? 'gave up' : 'in progress') : 'not played';
+    const state = g ? (g.status === 'solved' ? `solved with ${plural(wordsOf(g), 'word')}` : g.status === 'gaveup' ? 'gave up' : 'in progress') : 'not played';
     list.append(el('li', {}, el('button', { type: 'button', class: 'arch-btn' + cls, 'aria-label': `Daily ${n}, ${fmtDate(n)}, ${state}`,
       onclick: () => { closeSheet(); openArchive(n); } },
       el('span', { text: '#' + n }), el('small', { text: fmtDate(n, { month: 'short', day: 'numeric' }) }))));
@@ -496,12 +505,12 @@ function miniChain(words, minK) {
 }
 
 function shareText(g) {
-  const moves = movesOf(g);
+  const found = wordsOf(g), par = parWords(g);
   const name = g.kind === 'practice' ? `Splice practice #${g.num + 1}` : `Splice #${g.num}`;
   const line = g.status === 'solved' ? fullChain(g).ks.join('·') : 'X';
   const extras = [g.minK === 3 ? 'hard' : '', g.hints ? plural(g.hints, 'hint') : ''].filter(Boolean).join(' · ');
   const url = location.origin + location.pathname;
-  return `${name}\n${line} — par ${g.par}${g.status === 'solved' && moves < g.par ? ' (under!)' : ''}${extras ? '\n' + extras : ''}\n${url}`;
+  return `${name}\n${line} — par ${par}${g.status === 'solved' && found < par ? ' (under!)' : ''}${extras ? '\n' + extras : ''}\n${url}`;
 }
 
 async function share(g) {
@@ -515,8 +524,8 @@ async function share(g) {
 
 function showResult() {
   const g = S.game;
-  const moves = movesOf(g);
-  const d = moves - g.par;
+  const found = wordsOf(g), par = parWords(g);
+  const d = found - par;
   const full = fullChain(g);
   const style = g.status === 'solved' ? full.ks.reduce((a, b) => a + b, 0) : 0;
   let big, bucket;
@@ -528,8 +537,8 @@ function showResult() {
     el('div', { class: 'result-head' },
       el('div', { class: 'big', text: big }),
       el('div', { class: 'sub', text: g.status === 'solved'
-        ? `${moves} moves · style ${style} · par ${g.par}${g.minK === 3 ? ' (hard)' : ''}${g.hints ? ` · ${plural(g.hints, 'hint')}` : ''}`
-        : `Par was ${g.par}` })),
+        ? `${plural(found, 'word')} · style ${style} · par ${par}${g.minK === 3 ? ' (hard)' : ''}${g.hints ? ` · ${plural(g.hints, 'hint')}` : ''}`
+        : `Par was ${plural(par, 'word')}` })),
   ];
   if (g.status === 'solved') body.push(el('h3', { text: 'YOUR CHAIN' }), miniChain(full.words, g.minK));
   body.push(el('h3', { text: 'A PAR SOLUTION' }), miniChain(g.solution, g.minK));
@@ -568,9 +577,9 @@ function hintSheet() {
   openSheet('Hint',
     el('p', { class: 'kbd-hint', text: 'Hints show up in your result.' }),
     el('div', { class: 'btn-row' },
-      el('button', { type: 'button', class: 'big-btn secondary', text: 'Moves left?', onclick: () => {
+      el('button', { type: 'button', class: 'big-btn secondary', text: 'Words left?', onclick: () => {
         use();
-        out.textContent = hf ? `${up(a)} is ${plural(hf.movesLeft, 'move')} from ${up(b)} — ${plural(hf.movesLeft - 1, 'more word')} to find.` : noRoute;
+        out.textContent = hf ? `You need at least ${plural(hf.movesLeft - 1, 'more word')} to connect ${up(a)} to ${up(b)}.` : noRoute;
       } }),
       el('button', { type: 'button', class: 'big-btn secondary', text: 'Suggest a word', onclick: () => {
         use();
