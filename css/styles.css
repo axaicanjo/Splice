@@ -9,6 +9,11 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); }
 body { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+/* No double-tap zoom anywhere; pinch zoom is blocked by the viewport tag and in app.js */
+html, body, button, .app, .sheet { touch-action: manipulation; }
+.chain-wrap, .sheet { touch-action: pan-y; }
+body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; user-select: none; -webkit-user-select: none; }
+.share-box { user-select: text; -webkit-user-select: text; }
 button { font-family: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid var(--pip-on); outline-offset: 2px; }
 [hidden] { display: none !important; }

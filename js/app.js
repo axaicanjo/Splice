@@ -627,8 +627,26 @@ function buildKeyboard() {
   });
 }
 
+// ---------- no zoom ----------
+// The viewport tag blocks zoom on Android; iOS Safari ignores it for pinch, so stop the
+// gesture events there, plus any double-tap that slips past touch-action.
+function blockZoom() {
+  for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) {
+    document.addEventListener(ev, e => e.preventDefault(), { passive: false });
+  }
+  document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+  let lastTouch = 0;
+  document.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTouch < 350 && !e.target.closest('button, input, a')) e.preventDefault();
+    lastTouch = now;
+  }, { passive: false });
+  document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
+}
+
 // ---------- boot ----------
 async function boot() {
+  blockZoom();
   applyTheme(S.settings.theme);
   buildKeyboard();
   $('btn-menu').addEventListener('click', menuSheet);
